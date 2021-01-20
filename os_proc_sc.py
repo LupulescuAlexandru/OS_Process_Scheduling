@@ -2,7 +2,11 @@ import math
 import copy
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.ticker as plticker
+
+def normal_round(n):
+    if n - math.floor(n) < 0.5:
+        return math.floor(n)
+    return math.ceil(n)
 
 def compute_quantum(process_list):
     quantum = 0
@@ -112,13 +116,60 @@ def sjf(process_list):
     print('end SJF\n\n')
     return result
 
+# def rr(process_list, quantum=-1):
+#     print('start RR')
+#     if quantum == -1:
+#         quantum = math.ceil(compute_quantum(process_list))
+#     print('quantum = ' + str(quantum))
+#     current_time = process_list[0][0]
+#
+#     process_list_copy = copy.deepcopy(process_list)
+#     process_list_copy.sort(key=lambda x: x[2])
+#     result = []
+#     for i in range(len(process_list)):
+#         result.append([0, 0])
+#
+#     times_list = []
+#     process_order = []
+#
+#     while len(process_list) is not 0:
+#         # print('current_time = ' + str(current_time))
+#         # print('process_list: ' + str(process_list))
+#
+#         times_list.append(current_time)
+#         process_order.append(process_list[0][2])
+#
+#         process_index = process_list[0][2] - 1
+#         result[process_index][0] += current_time - process_list[0][0]
+#
+#         if process_list[0][1] <= quantum:
+#             result[process_index][1] = result[process_index][0] + process_list_copy[process_index][1]
+#             current_time += process_list[0][1]
+#             process_list.pop(0)
+#         else:
+#             process_list[0][1] -= quantum
+#             process_list[0][0] = current_time + quantum
+#             temp_process = process_list[0]
+#             process_list.remove(temp_process)
+#             for i in range(len(process_list)):
+#                 if process_list[i][0] > current_time + quantum:
+#                     process_list.insert(i, temp_process)
+#                     break
+#             if temp_process not in process_list:
+#                 process_list.append(temp_process)
+#             current_time += quantum
+#         # print()
+#     times_list.append(current_time)
+#     # print('current_time = ' + str(current_time) + '\n')
+#     statistics(process_list_copy, times_list, process_order, result, "Round Robin")
+#     print('end RR\n\n')
+#     return result
 
 def rr(process_list, quantum=-1):
     print('start RR')
     if quantum == -1:
-        quantum = math.ceil(compute_quantum(process_list))
+        quantum = normal_round(compute_quantum(process_list))
     print('quantum = ' + str(quantum))
-    current_time = process_list[0][0]
 
     process_list_copy = copy.deepcopy(process_list)
     process_list_copy.sort(key=lambda x: x[2])
@@ -126,38 +177,37 @@ def rr(process_list, quantum=-1):
     for i in range(len(process_list)):
         result.append([0, 0])
 
+    queue = [process_list[0]]
+    current_time = queue[0][0]
     times_list = []
     process_order = []
 
-    while len(process_list) is not 0:
-        # print('current_time = ' + str(current_time))
-        # print('process_list: ' + str(process_list))
-
+    while len(queue) is not 0:
+        process_cont = None
+        process_index = queue[0][2] - 1
         times_list.append(current_time)
-        process_order.append(process_list[0][2])
-
-        process_index = process_list[0][2] - 1
-        result[process_index][0] += current_time - process_list[0][0]
-
-        if process_list[0][1] <= quantum:
+        process_order.append(queue[0][2])
+        result[process_index][0] += current_time - queue[0][0]
+        if queue[0][1] <= quantum:
             result[process_index][1] = result[process_index][0] + process_list_copy[process_index][1]
-            current_time += process_list[0][1]
-            process_list.pop(0)
+            current_time += queue[0][1]
+            if queue[0] in process_list:
+                process_list.remove(queue[0])
         else:
-            process_list[0][1] -= quantum
-            process_list[0][0] = current_time + quantum
-            temp_process = process_list[0]
-            process_list.remove(temp_process)
-            for i in range(len(process_list)):
-                if process_list[i][0] > current_time:
-                    process_list.insert(i, temp_process)
-                    break
-            if temp_process not in process_list:
-                process_list.append(temp_process)
             current_time += quantum
-        # print()
+            if queue[0] in process_list:
+                process_list.remove(queue[0])
+            queue[0][0] = current_time
+            queue[0][1] -= quantum
+            process_cont = queue[0]
+
+        queue.pop(0)
+        for process in process_list:
+            if process[0] <= current_time and process not in queue:
+                queue.append(process)
+        if process_cont:
+            queue.append(process_cont)
     times_list.append(current_time)
-    # print('current_time = ' + str(current_time) + '\n')
     statistics(process_list_copy, times_list, process_order, result, "Round Robin")
     print('end RR\n\n')
     return result
@@ -166,7 +216,7 @@ def rr(process_list, quantum=-1):
 def srtn(process_list, quantum=-1):
     print('start SRTN')
     if quantum == -1:
-        quantum = math.ceil(compute_quantum(process_list))
+        quantum = normal_round(compute_quantum(process_list))
     print('quantum = ' + str(quantum))
     current_time = process_list[0][0]
 
@@ -244,7 +294,6 @@ def main(process_list):
     fcfs_result = fcfs(parse_input(process_list))
     sjf_result = sjf(parse_input(process_list))
     rr_result = rr(parse_input(process_list))
-    # rr(parse_input(process_list), 20)
     srtn_result = srtn(parse_input(process_list))
 
 
@@ -259,10 +308,10 @@ def main(process_list):
 
     '''
 input_list = [
-    [0, 5],
-    [5, 10],
-    [0, 15],
-    [5, 10],
-    [0, 5]
+    [6, 52],
+    [1, 13],
+    [0, 14],
+    [0, 23],
+    [0, 37]
 ]
 main(input_list)
