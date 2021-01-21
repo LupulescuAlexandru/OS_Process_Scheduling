@@ -3,10 +3,12 @@ import copy
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 def normal_round(n):
     if n - math.floor(n) < 0.5:
         return math.floor(n)
     return math.ceil(n)
+
 
 def compute_quantum(process_list):
     quantum = 0
@@ -18,7 +20,7 @@ def compute_quantum(process_list):
 def parse_input(process_list):
     process_list_copy = copy.deepcopy(process_list)
     for i in range(len(process_list_copy)):
-        process_list_copy[i].append(i+1)
+        process_list_copy[i].append(i + 1)
     return sorted(process_list_copy)
 
 
@@ -36,6 +38,42 @@ def compute_turn_average(result_list):
     return sum / len(result_list)
 
 
+# def fcfs(process_list):
+#     print('start FCFS')
+#     current_time = process_list[0][0]
+#
+#     process_list_copy = copy.deepcopy(process_list)
+#     process_list_copy.sort(key=lambda x: x[2])
+#     result = []
+#     for i in range(len(process_list)):
+#         result.append([0, 0])
+#
+#     times_list = []
+#     process_order = []
+#
+#     while len(process_list) is not 0:
+#         # print('current_time = ' + str(current_time))
+#         # print('process_list: ' + str(process_list))
+#
+#         times_list.append(current_time)
+#         process_order.append(process_list[0][2])
+#
+#         process_index = process_list[0][2] - 1
+#         result[process_index][0] = current_time - process_list[0][0]
+#         result[process_index][1] = result[process_index][0] + process_list_copy[process_index][1]
+#
+#         # print("queue " + str(current_time) + "->" + str(process_list))
+#         current_time += process_list[0][1]
+#         process_list.pop(0)
+#         # print('(updated) current_time = ' + str(current_time))
+#         # print(result)
+#         # print()
+#     times_list.append(current_time)
+#     # print('current_time = ' + str(current_time) + '\n')
+#     statistics(process_list_copy, times_list, process_order, result, "FCFS")
+#     print('end FCFS\n\n')
+#     return result
+
 def fcfs(process_list):
     print('start FCFS')
     current_time = process_list[0][0]
@@ -48,29 +86,68 @@ def fcfs(process_list):
 
     times_list = []
     process_order = []
+    queue = [process_list[0]]
 
-    while len(process_list) is not 0:
-        # print('current_time = ' + str(current_time))
-        # print('process_list: ' + str(process_list))
-
+    while len(queue) is not 0:
         times_list.append(current_time)
         process_order.append(process_list[0][2])
 
         process_index = process_list[0][2] - 1
-        result[process_index][0] = current_time - process_list[0][0]
+        result[process_index][0] = current_time - queue[0][0]
         result[process_index][1] = result[process_index][0] + process_list_copy[process_index][1]
 
-        current_time += process_list[0][1]
+        current_time += queue[0][1]
         process_list.pop(0)
-        # print('(updated) current_time = ' + str(current_time))
-        # print(result)
-        # print()
+        queue.pop(0)
+        for process in process_list:
+            if process[0] <= current_time and process not in queue:
+                queue.append(process)
+        print("queue " + str(current_time) + "->" + str(queue))
+
     times_list.append(current_time)
-    # print('current_time = ' + str(current_time) + '\n')
     statistics(process_list_copy, times_list, process_order, result, "FCFS")
     print('end FCFS\n\n')
     return result
 
+
+# def sjf(process_list):
+#     print('start SJF')
+#     current_time = process_list[0][0]
+#
+#     process_list_copy = copy.deepcopy(process_list)
+#     process_list_copy.sort(key=lambda x: x[2])
+#     result = []
+#     for i in range(len(process_list)):
+#         result.append([0, 0])
+#
+#     times_list = []
+#     process_order = []
+#
+#     while len(process_list) is not 0:
+#         times_list.append(current_time)
+#         process_order.append(process_list[0][2])
+#
+#         process_index = process_list[0][2] - 1
+#         result[process_index][0] = current_time - process_list[0][0]
+#         result[process_index][1] = result[process_index][0] + process_list_copy[process_index][1]
+#
+#         current_time += process_list[0][1]
+#         process_list.pop(0)
+#
+#         if len(process_list) > 1:
+#             temp_min = math.inf
+#             for process in process_list:
+#                 if process[1] < temp_min and process[0] <= current_time:
+#                     temp_min = process[1]
+#                     temp_process = process
+#             process_list.remove(temp_process)
+#             process_list.append(temp_process)
+#             process_list.reverse()
+#
+#     times_list.append(current_time)
+#     statistics(process_list_copy, times_list, process_order, result, "SJF")
+#     print('end SJF\n\n')
+#     return result
 
 def sjf(process_list):
     print('start SJF')
@@ -84,37 +161,30 @@ def sjf(process_list):
 
     times_list = []
     process_order = []
+    queue = [process_list[0]]
 
-    while len(process_list) is not 0:
-        # print('current_time = ' + str(current_time))
-        # print('process_list: ' + str(process_list))
-
+    while len(queue) is not 0:
         times_list.append(current_time)
-        process_order.append(process_list[0][2])
+        process_order.append(queue[0][2])
 
-        process_index = process_list[0][2] - 1
-        result[process_index][0] = current_time - process_list[0][0]
+        process_index = queue[0][2] - 1
+        result[process_index][0] = current_time - queue[0][0]
         result[process_index][1] = result[process_index][0] + process_list_copy[process_index][1]
 
-        current_time += process_list[0][1]
-        process_list.pop(0)
-        # print('(updated) current_time = ' + str(current_time))
+        current_time += queue[0][1]
+        process_list.remove(queue[0])
+        queue.pop(0)
+        for process in process_list:
+            if process[0] <= current_time and process not in queue:
+                queue.append(process)
+        queue.sort(key=lambda x: x[1])
+        print("queue " + str(current_time) + "->" + str(queue))
 
-        if len(process_list) > 1:
-            temp_min = math.inf
-            for process in process_list:
-                if process[1] < temp_min and process[0] <= current_time:
-                    temp_min = process[1]
-                    temp_process = process
-            process_list.remove(temp_process)
-            process_list.append(temp_process)
-            process_list.reverse()
-        # print()
     times_list.append(current_time)
-    # print('current_time = ' + str(current_time) + '\n')
     statistics(process_list_copy, times_list, process_order, result, "SJF")
     print('end SJF\n\n')
     return result
+
 
 # def rr(process_list, quantum=-1):
 #     print('start RR')
@@ -207,68 +277,115 @@ def rr(process_list, quantum=-1):
                 queue.append(process)
         if process_cont:
             queue.append(process_cont)
+        print("queue " + str(current_time) + "->" + str(queue))
     times_list.append(current_time)
     statistics(process_list_copy, times_list, process_order, result, "Round Robin")
     print('end RR\n\n')
     return result
 
+# #luchian version
+# def srtn(process_list, quantum=-1):
+#     print('start SRTN')
+#     if quantum == -1:
+#         quantum = normal_round(compute_quantum(process_list))
+#     print('quantum = ' + str(quantum))
+#     current_time = process_list[0][0]
+#
+#     process_list_copy = copy.deepcopy(process_list)
+#     process_list_copy.sort(key=lambda x: x[2])
+#     result = []
+#     for i in range(len(process_list)):
+#         result.append([-1, -1])
+#
+#     times_list = []
+#     process_order = []
+#
+#     while len(process_list) is not 0:
+#         # print('current_time = ' + str(current_time))
+#         # print('process_list: ' + str(process_list))
+#
+#         times_list.append(current_time)
+#         process_order.append(process_list[0][2])
+#
+#         process_index = process_list[0][2] - 1
+#         if result[process_index][0] == -1:
+#             result[process_index][0] = current_time - process_list[0][0]
+#
+#         if process_list[0][1] <= quantum:
+#             result[process_index][1] = result[process_index][0] + process_list_copy[process_index][1]
+#             current_time += process_list[0][1]
+#             process_list.pop(0)
+#             if len(process_list) > 1:
+#                 temp_min = math.inf
+#                 for process in process_list:
+#                     if process[1] < temp_min and process[0] <= current_time:
+#                         temp_min = process[1]
+#                         temp_process = process
+#                 process_list.remove(temp_process)
+#                 process_list.append(temp_process)
+#                 process_list.reverse()
+#         else:
+#             current_time += quantum
+#             process_list[0][1] -= quantum
+#
+#         # print('(updated) current_time = ' + str(current_time))
+#         # print()
+#     times_list.append(current_time)
+#     # print('current_time = ' + str(current_time) + '\n')
+#     statistics(process_list_copy, times_list, process_order, result, "SRTN")
+#     print('end SRTN\n\n')
+#     return result
 
 def srtn(process_list, quantum=-1):
     print('start SRTN')
     if quantum == -1:
         quantum = normal_round(compute_quantum(process_list))
     print('quantum = ' + str(quantum))
-    current_time = process_list[0][0]
 
     process_list_copy = copy.deepcopy(process_list)
     process_list_copy.sort(key=lambda x: x[2])
     result = []
     for i in range(len(process_list)):
-        result.append([-1, -1])
+        result.append([0, 0])
 
+    queue = [process_list[0]]
+    current_time = queue[0][0]
     times_list = []
     process_order = []
 
-    while len(process_list) is not 0:
-        # print('current_time = ' + str(current_time))
-        # print('process_list: ' + str(process_list))
-
+    while len(queue) is not 0:
+        process_cont = None
+        process_index = queue[0][2] - 1
         times_list.append(current_time)
-        process_order.append(process_list[0][2])
-
-        process_index = process_list[0][2] - 1
-        if result[process_index][0] == -1:
-            result[process_index][0] = current_time - process_list[0][0]
-
-        if process_list[0][1] <= quantum:
+        process_order.append(queue[0][2])
+        result[process_index][0] += current_time - queue[0][0]
+        if queue[0][1] <= quantum:
             result[process_index][1] = result[process_index][0] + process_list_copy[process_index][1]
-            current_time += process_list[0][1]
-            process_list.pop(0)
-            if len(process_list) > 1:
-                temp_min = math.inf
-                for process in process_list:
-                    if process[1] < temp_min and process[0] <= current_time:
-                        temp_min = process[1]
-                        temp_process = process
-                process_list.remove(temp_process)
-                process_list.append(temp_process)
-                process_list.reverse()
+            current_time += queue[0][1]
+            if queue[0] in process_list:
+                process_list.remove(queue[0])
         else:
             current_time += quantum
-            process_list[0][1] -= quantum
+            if queue[0] in process_list:
+                process_list.remove(queue[0])
+            queue[0][0] = current_time
+            queue[0][1] -= quantum
+            process_cont = queue[0]
 
-        # print('(updated) current_time = ' + str(current_time))
-        # print()
+        queue.pop(0)
+        for process in process_list:
+            if process[0] <= current_time and process not in queue:
+                queue.append(process)
+        if process_cont:
+            queue.append(process_cont)
+        queue.sort(key=lambda x: x[1])
+        print("queue " + str(current_time) + "->" + str(queue))
     times_list.append(current_time)
-    # print('current_time = ' + str(current_time) + '\n')
     statistics(process_list_copy, times_list, process_order, result, "SRTN")
     print('end SRTN\n\n')
     return result
 
-
 def statistics(process_list, times_list, process_order, result, title):
-    # print('process_list: ' + str(process_list))
-    #[4, 16, 33, 67, 90]
     print('times_list: ' + str(times_list))
     print('process_order: ' + str(process_order))
     print('context_switches: ' + str(len(process_order) - 1))
@@ -279,7 +396,7 @@ def statistics(process_list, times_list, process_order, result, title):
     y_axis_labels = np.array(process_order)
     process_val = []
     for i in range(1, len(times_list)):
-        process_val.append(times_list[i]-times_list[i-1])
+        process_val.append(times_list[i] - times_list[i - 1])
     print("process_val: " + str(process_val))
 
     plt.figure()
@@ -287,6 +404,7 @@ def statistics(process_list, times_list, process_order, result, title):
     plt.ylabel("Processes")
     plt.barh(y_axis_labels, process_val, height=0.5, left=starting_points)
     plt.xticks(times_list)
+    plt.yticks(y_axis_labels)
     plt.show()
 
 
@@ -308,10 +426,23 @@ def main(process_list):
 
     '''
 input_list = [
-    [6, 52],
-    [1, 13],
-    [0, 14],
-    [0, 23],
-    [0, 37]
+    # [25, 32],
+    # [2, 13],
+    # [10, 34],
+    # [0, 23],
+    # [17, 17],
+    # [9, 19],
+    # [0, 31],
+    # [0, 11],
+    [15, 7],
+    [12, 5],
+    [5, 13],
+    [10, 3],
+    [7, 27],
+    [19, 29],
+    [12, 10],
+    [5,6],
+    [21, 31],
+    [2, 13]
 ]
 main(input_list)
