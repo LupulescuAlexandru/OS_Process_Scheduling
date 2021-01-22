@@ -74,10 +74,10 @@ def compute_turn_average(result_list):
 #     print('end FCFS\n\n')
 #     return result
 
-def fcfs(process_list):
+def fcfs(process_list, debug=False):
     print('start FCFS')
     current_time = process_list[0][0]
-
+    final_queue = []
     process_list_copy = copy.deepcopy(process_list)
     process_list_copy.sort(key=lambda x: x[2])
     result = []
@@ -103,11 +103,11 @@ def fcfs(process_list):
             if process[0] <= current_time and process not in queue:
                 queue.append(process)
         print("queue " + str(current_time) + "->" + str(queue))
-
     times_list.append(current_time)
-    statistics(process_list_copy, times_list, process_order, result, "FCFS")
+    if not debug:
+        statistics(process_list_copy, times_list, process_order, result, "FCFS")
     print('end FCFS\n\n')
-    return result
+    return result, final_queue
 
 
 # def sjf(process_list):
@@ -149,10 +149,10 @@ def fcfs(process_list):
 #     print('end SJF\n\n')
 #     return result
 
-def sjf(process_list):
+def sjf(process_list, debug=False):
     print('start SJF')
     current_time = process_list[0][0]
-
+    final_queue = []
     process_list_copy = copy.deepcopy(process_list)
     process_list_copy.sort(key=lambda x: x[2])
     result = []
@@ -179,11 +179,13 @@ def sjf(process_list):
                 queue.append(process)
         queue.sort(key=lambda x: x[1])
         print("queue " + str(current_time) + "->" + str(queue))
+        final_queue.append(queue)
 
     times_list.append(current_time)
-    statistics(process_list_copy, times_list, process_order, result, "SJF")
+    if not debug:
+        statistics(process_list_copy, times_list, process_order, result, "SJF")
     print('end SJF\n\n')
-    return result
+    return result, final_queue
 
 
 # def rr(process_list, quantum=-1):
@@ -235,7 +237,7 @@ def sjf(process_list):
 #     print('end RR\n\n')
 #     return result
 
-def rr(process_list, quantum=-1):
+def rr(process_list, quantum=-1, debug=False):
     print('start RR')
     if quantum == -1:
         quantum = normal_round(compute_quantum(process_list))
@@ -248,6 +250,7 @@ def rr(process_list, quantum=-1):
         result.append([0, 0])
 
     queue = [process_list[0]]
+    final_queue = []
     current_time = queue[0][0]
     times_list = []
     process_order = []
@@ -278,10 +281,12 @@ def rr(process_list, quantum=-1):
         if process_cont:
             queue.append(process_cont)
         print("queue " + str(current_time) + "->" + str(queue))
+        final_queue.append(queue)
     times_list.append(current_time)
-    statistics(process_list_copy, times_list, process_order, result, "Round Robin")
+    if not debug:
+        statistics(process_list_copy, times_list, process_order, result, "Round Robin")
     print('end RR\n\n')
-    return result
+    return result, final_queue
 
 # #luchian version
 # def srtn(process_list, quantum=-1):
@@ -336,7 +341,7 @@ def rr(process_list, quantum=-1):
 #     print('end SRTN\n\n')
 #     return result
 
-def srtn(process_list, quantum=-1):
+def srtn(process_list, quantum=-1, debug=False):
     print('start SRTN')
     if quantum == -1:
         quantum = normal_round(compute_quantum(process_list))
@@ -349,6 +354,7 @@ def srtn(process_list, quantum=-1):
         result.append([0, 0])
 
     queue = [process_list[0]]
+    final_queue = []
     current_time = queue[0][0]
     times_list = []
     process_order = []
@@ -365,12 +371,18 @@ def srtn(process_list, quantum=-1):
             if queue[0] in process_list:
                 process_list.remove(queue[0])
         else:
-            current_time += quantum
-            if queue[0] in process_list:
-                process_list.remove(queue[0])
-            queue[0][0] = current_time
-            queue[0][1] -= quantum
-            process_cont = queue[0]
+            if len(queue) == 1 and len(process_list) == 1:
+                result[process_index][1] = result[process_index][0] + process_list_copy[process_index][1]
+                current_time += queue[0][1]
+                if queue[0] in process_list:
+                    process_list.remove(queue[0])
+            else:
+                current_time += quantum
+                if queue[0] in process_list:
+                    process_list.remove(queue[0])
+                queue[0][0] = current_time
+                queue[0][1] -= quantum
+                process_cont = queue[0]
 
         queue.pop(0)
         for process in process_list:
@@ -380,10 +392,12 @@ def srtn(process_list, quantum=-1):
             queue.append(process_cont)
         queue.sort(key=lambda x: x[1])
         print("queue " + str(current_time) + "->" + str(queue))
+        final_queue.append(queue)
     times_list.append(current_time)
-    statistics(process_list_copy, times_list, process_order, result, "SRTN")
+    if not debug:
+        statistics(process_list_copy, times_list, process_order, result, "SRTN")
     print('end SRTN\n\n')
-    return result
+    return result, final_queue
 
 def statistics(process_list, times_list, process_order, result, title):
     print('times_list: ' + str(times_list))
@@ -414,7 +428,6 @@ def main(process_list):
     rr_result = rr(parse_input(process_list))
     srtn_result = srtn(parse_input(process_list))
 
-
 '''
     [4, 12],
     [30, 5],
@@ -426,23 +439,12 @@ def main(process_list):
 
     '''
 input_list = [
-    # [25, 32],
-    # [2, 13],
-    # [10, 34],
-    # [0, 23],
-    # [17, 17],
-    # [9, 19],
-    # [0, 31],
-    # [0, 11],
-    [15, 7],
-    [12, 5],
-    [5, 13],
-    [10, 3],
-    [7, 27],
-    [19, 29],
-    [12, 10],
-    [5,6],
-    [21, 31],
-    [2, 13]
+    [7, 11],
+    [7, 53],
+    [3, 24],
+    [2, 23],
+    [8, 27]
 ]
-main(input_list)
+
+if __name__ == '__main__':
+    main(input_list)
